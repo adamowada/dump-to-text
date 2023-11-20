@@ -4,7 +4,7 @@ import argparse
 import pyperclip
 
 
-IGNORE_DIRS = {".venv", "nodemon", ".idea", ".git", ".vscode"}
+IGNORE_DIRS = {".venv", "node_modules", ".idea", ".git", ".vscode"}
 EXTENSIONS = {
     ".py": "python",
     ".md": "markdown",
@@ -18,7 +18,7 @@ EXTENSIONS = {
 
 def list_directory(path, prefix=""):
     tree_str = ""
-    files = sorted([f for f in os.listdir(path) if not f.startswith(".") and f != "nodemon"])
+    files = sorted([f for f in os.listdir(path) if not f.startswith(".") and f != "node_modules"])
     num_files = len(files)
 
     for index, file in enumerate(files):
