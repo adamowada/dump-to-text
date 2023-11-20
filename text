@@ -84,6 +84,9 @@ def main():
         for file in files:
             file_path = os.path.join(root, file)
 
+            if ".env" in file_path:
+                continue
+
             if is_utf8_text_file(file_path):
                 ext = os.path.splitext(file_path)[1]
                 output += f"Contents of `{os.path.join(project_name, file)}`:\n\n```{EXTENSIONS.get(ext, '')}"
