@@ -4,7 +4,7 @@ import argparse
 import pyperclip
 
 
-IGNORE_DIRS = {".venv", "nodemon", ".idea", ".git"}
+IGNORE_DIRS = {".venv", "nodemon", ".idea", ".git", ".vscode"}
 EXTENSIONS = {
     ".py": "python",
     ".md": "markdown",
