@@ -4,7 +4,8 @@ import argparse
 import pyperclip
 
 
-IGNORE_DIRS = {".venv", "node_modules", ".idea", ".git", ".vscode"}
+IGNORE_DIRS = {".venv", "node_modules", ".idea", ".git", ".vscode", ".next"}
+IGNORE_FILES = {".env", "package.json", "package-lock.json", ".eslintrc.json", ".gitignore"}
 EXTENSIONS = {
     ".py": "python",
     ".md": "markdown",
@@ -63,7 +64,7 @@ def is_utf8_text_file(file_path):
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--copy", help="Copy the contents to clipboard", action="store_true")
+    parser.add_argument("-w", "--write", help="Write the contents to `project_structure.txt`", action="store_true")
     return parser.parse_args()
 
 
@@ -74,7 +75,7 @@ def main():
     project_name = os.path.basename(project_root)
 
     output = f"Tree of project `{project_name}`:\n\n```bash\n"
-    output += list_directory(project_root)[:-1] + "\n```\n\n"
+    output += list_directory(project_root) + "```\n\n"
 
     for root, dirs, files in os.walk(project_root):
         # Skip directories in IGNORE_DIRS set
@@ -84,12 +85,13 @@ def main():
         for file in files:
             file_path = os.path.join(root, file)
 
-            if ".env" in file_path:
+            if file in IGNORE_FILES:
                 continue
 
             if is_utf8_text_file(file_path):
                 ext = os.path.splitext(file_path)[1]
-                output += f"Contents of `{os.path.join(project_name, file)}`:\n\n```{EXTENSIONS.get(ext, '')}"
+                relative_path = os.path.relpath(file_path, project_root)
+                output += f"Contents of `{os.path.join(project_name, relative_path)}`:\n\n```{EXTENSIONS.get(ext, '')}"
 
                 if read_file_content(file_path):  # not an empty file, like `__init__.py`
                     output += f"\n{read_file_content(file_path)}\n```\n\n"
@@ -99,12 +101,13 @@ def main():
     # remove whitespace
     output = output.strip()
 
-    with open(os.path.join(project_root, "project_structure.txt"), "w") as f:
-        f.write(output)
+    pyperclip.copy(output)
+    print("Contents copied to clipboard.")
 
-    if args.copy:
-        pyperclip.copy(output)
-        print("Contents copied to clipboard.")
+    if args.write:
+        with open(os.path.join(project_root, "project_structure.txt"), "w") as f:
+            f.write(output)
+        print("Contents written to `project_structure.txt`.")
 
 
 if __name__ == "__main__":
