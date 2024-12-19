@@ -13,11 +13,13 @@ EXTENSIONS = {
     ".py": "python",
     ".md": "markdown",
     ".js": "javascript",
+    ".jsx": "javascript",
     ".text": "text",
     ".css": "css",
     ".json": "json",
     ".html": "html",
-    ".ts": "typescript"
+    ".ts": "typescript",
+    ".tsx": "typescript"
 }
 
 
@@ -103,7 +105,7 @@ def main():
                 file_content = read_file_content(file_path)
 
                 # If this is a JS or TS file, remove commented lines starting with //
-                if ext in [".js", ".ts"]:
+                if ext in [".js", ".jsx", ".ts", ".tsx"]:
                     lines = file_content.split("\n")
                     lines = [
                         line for line in lines if not line.strip().startswith("//")]
