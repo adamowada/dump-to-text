@@ -17,7 +17,7 @@ EXTENSIONS = {
     ".css": "css",
     ".json": "json",
     ".html": "html",
-    ".ts": "typescript"  # Added TypeScript extension mapping
+    ".ts": "typescript"
 }
 
 
