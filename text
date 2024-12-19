@@ -5,7 +5,10 @@ import pyperclip
 
 
 IGNORE_DIRS = {".venv", "node_modules", ".idea", ".git", ".vscode", ".next"}
-IGNORE_FILES = {".env", "package.json", "package-lock.json", ".eslintrc.json", ".gitignore"}
+IGNORE_FILES = {".env", "package.json",
+                "package-lock.json", ".eslintrc.json", ".gitignore"}
+IGNORE_EXTENSIONS = {".svg"}
+
 EXTENSIONS = {
     ".py": "python",
     ".md": "markdown",
@@ -14,12 +17,14 @@ EXTENSIONS = {
     ".css": "css",
     ".json": "json",
     ".html": "html",
+    ".ts": "typescript"  # Added TypeScript extension mapping
 }
 
 
 def list_directory(path, prefix=""):
     tree_str = ""
-    files = sorted([f for f in os.listdir(path) if not f.startswith(".") and f != "node_modules"])
+    files = sorted([f for f in os.listdir(
+        path) if not f.startswith(".") and f != "node_modules"])
     num_files = len(files)
 
     for index, file in enumerate(files):
@@ -42,7 +47,7 @@ def list_directory(path, prefix=""):
 
 def read_file_content(file_path):
     try:
-        with open(file_path, "r") as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             return file.read()
     except Exception as e:
         return f"Error reading file: {e}"
@@ -52,10 +57,10 @@ def is_utf8_text_file(file_path):
     try:
         with open(file_path, "rb") as file:
             data = file.read()
-            decoded_data = data.decode("utf-8")
             # Check if the file contains binary data
             if b'\0' in data:
                 return False
+            data.decode("utf-8")
             return True
     except UnicodeDecodeError:
         # If a UnicodeDecodeError is raised, the file is not a valid UTF-8 encoded text file
@@ -64,7 +69,8 @@ def is_utf8_text_file(file_path):
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-w", "--write", help="Write the contents to `project_structure.txt`", action="store_true")
+    parser.add_argument(
+        "-w", "--write", help="Write the contents to `project_structure.txt`", action="store_true")
     return parser.parse_args()
 
 
@@ -74,7 +80,7 @@ def main():
     project_root = os.getcwd()
     project_name = os.path.basename(project_root)
 
-    output = f"Tree of project `{project_name}`:\n\n```bash\n"
+    output = f"Tree of `{project_name}`:\n\n```bash\n"
     output += list_directory(project_root) + "```\n\n"
 
     for root, dirs, files in os.walk(project_root):
@@ -85,27 +91,40 @@ def main():
         for file in files:
             file_path = os.path.join(root, file)
 
+            # Skip ignored files and extensions
             if file in IGNORE_FILES:
+                continue
+            _, ext = os.path.splitext(file_path)
+            if ext in IGNORE_EXTENSIONS:
                 continue
 
             if is_utf8_text_file(file_path):
-                ext = os.path.splitext(file_path)[1]
                 relative_path = os.path.relpath(file_path, project_root)
+                file_content = read_file_content(file_path)
+
+                # If this is a JS or TS file, remove commented lines starting with //
+                if ext in [".js", ".ts"]:
+                    lines = file_content.split("\n")
+                    lines = [
+                        line for line in lines if not line.strip().startswith("//")]
+                    file_content = "\n".join(lines)
+
                 output += f"Contents of `{os.path.join(project_name, relative_path)}`:\n\n```{EXTENSIONS.get(ext, '')}"
 
-                if read_file_content(file_path):  # not an empty file, like `__init__.py`
-                    output += f"\n{read_file_content(file_path)}\n```\n\n"
+                if file_content:
+                    output += f"\n{file_content}\n```\n\n"
                 else:
-                    output += f"{read_file_content(file_path)}\n```\n\n"
+                    # If empty or error
+                    output += f"{file_content}\n```\n\n"
 
-    # remove whitespace
+    # remove trailing whitespace
     output = output.strip()
 
     pyperclip.copy(output)
     print("Contents copied to clipboard.")
 
     if args.write:
-        with open(os.path.join(project_root, "project_structure.txt"), "w") as f:
+        with open(os.path.join(project_root, "project_structure.txt"), "w", encoding="utf-8") as f:
             f.write(output)
         print("Contents written to `project_structure.txt`.")
 
